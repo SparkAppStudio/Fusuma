@@ -183,16 +183,6 @@ public struct ImageMetadata {
         titleLabel.textColor = fusumaTintColor
         titleLabel.font      = fusumaTitleFont
         
-        if availableModes.count == 0 || availableModes.count >= 3 {
-            
-            fatalError("the number of items in the variable of availableModes is incorrect.")
-        }
-        
-        if NSOrderedSet(array: availableModes).count != availableModes.count {
-            
-            fatalError("the variable of availableModes should have unique elements.")
-        }
-        
         changeMode(availableModes[0], isForced: true)
         
         var sortedButtons = [UIButton]()

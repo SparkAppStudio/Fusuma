@@ -33,14 +33,33 @@ final class FSVideoCameraView: UIView {
     var videoStartImage: UIImage?
     var videoStopImage: UIImage?
 
-    
+    let totalSeconds = 8.0 //Total Seconds of capture time
+
+    var circleProgress: CAShapeLayer! = nil
+
     fileprivate var isRecording = false
     
     static func instance() -> FSVideoCameraView {
         
         return UINib(nibName: "FSVideoCameraView", bundle: Bundle(for: self.classForCoder())).instantiate(withOwner: self, options: nil)[0] as! FSVideoCameraView
     }
-    
+
+    func addprogressView(with frame: CGRect) {
+        let insetFrame = frame.insetBy(dx: 10, dy: 10)
+        circleProgress = CAShapeLayer()
+        circleProgress.frame = insetFrame
+        let insetSize = insetFrame.insetBy(dx: 5, dy: 5).size
+        let insetRectForCircle = CGRect(origin: CGPoint(x:5, y:5), size: insetSize)
+        circleProgress.path = UIBezierPath(ovalIn: insetRectForCircle).cgPath
+        circleProgress.lineWidth = 10
+        circleProgress.strokeColor = UIColor.lightGray.cgColor
+        circleProgress.fillColor = UIColor.clear.cgColor
+        circleProgress.lineCap = kCALineCapRound
+        circleProgress.strokeStart = 0
+        circleProgress.strokeEnd = 1.0 // initially fill the circle
+    }
+
+
     func initialize() {
         
         if session != nil { return }
@@ -70,7 +89,6 @@ final class FSVideoCameraView: UIView {
             session.addInput(videoInput)
             
             videoOutput = AVCaptureMovieFileOutput()
-            let totalSeconds = 60.0 //Total Seconds of capture time
             let timeScale: Int32 = 30 //FPS
             
             let maxDuration = CMTimeMakeWithSeconds(totalSeconds, timeScale)
@@ -88,7 +106,10 @@ final class FSVideoCameraView: UIView {
             videoLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
             
             self.previewViewContainer.layer.addSublayer(videoLayer!)
-            
+
+            addprogressView(with: videoLayer!.frame)
+            videoLayer?.addSublayer(circleProgress)
+
             session.startRunning()
             
             // Focus View
@@ -253,12 +274,17 @@ fileprivate extension FSVideoCameraView {
         guard let videoOutput = videoOutput else { return }
         
         self.isRecording = !self.isRecording
+
         
         let shotImage = self.isRecording ? videoStopImage : videoStartImage
         
         self.shotButton.setImage(shotImage, for: UIControlState())
         
         if self.isRecording {
+            CATransaction.begin()
+            CATransaction.setAnimationDuration(totalSeconds)
+            circleProgress?.strokeEnd = 0.0
+            CATransaction.commit()
             
             let outputPath = "\(NSTemporaryDirectory())output.mov"
             let outputURL = URL(fileURLWithPath: outputPath)
@@ -283,6 +309,7 @@ fileprivate extension FSVideoCameraView {
             videoOutput.startRecording(toOutputFileURL: outputURL, recordingDelegate: self)
             
         } else {
+            circleProgress?.strokeEnd = 1.0
             
             videoOutput.stopRecording()
             self.flipButton.isEnabled = true
