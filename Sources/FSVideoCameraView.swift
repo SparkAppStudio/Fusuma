@@ -143,8 +143,6 @@ final class FSVideoCameraView: UIView {
             addprogressView(with: videoLayer!.frame)
             videoLayer?.addSublayer(circleProgress)
 
-            session.startRunning()
-            
             // Focus View
             self.focusView         = UIView(frame: CGRect(x: 0, y: 0, width: 90, height: 90))
             let tapRecognizer      = UITapGestureRecognizer(target: self, action: #selector(FSVideoCameraView.focus(_:)))
