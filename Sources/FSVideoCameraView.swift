@@ -114,7 +114,7 @@ final class FSVideoCameraView: UIView {
 
             recorder.addOutput(videoOutput)
 
-            let videoLayer = AVCaptureVideoPreviewLayer(session: session)
+            let videoLayer = AVCaptureVideoPreviewLayer(session: recorder.session)
             videoLayer?.frame = self.previewViewContainer.bounds
             videoLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
             
@@ -190,41 +190,38 @@ final class FSVideoCameraView: UIView {
     }
     
     @IBAction func flipButtonPressed(_ sender: UIButton) {
-        
-        guard let session = session else { return }
-        
-        session.stopRunning()
-        
-        do {
-            
-            session.beginConfiguration()
-            
+
+        func removeCurrentInput() {
             for input in session.inputs {
-                
                 if let input = input as? AVCaptureInput {
-                    
                     session.removeInput(input)
                 }
             }
-            
-            let position = videoInput?.device.position == AVCaptureDevicePosition.front ? AVCaptureDevicePosition.back : AVCaptureDevicePosition.front
-            
+        }
+
+        func currentInputLocation() -> AVCaptureDevicePosition {
+            return videoInput?.device.position == AVCaptureDevicePosition.front ? AVCaptureDevicePosition.back : AVCaptureDevicePosition.front
+        }
+
+        func addVideoInputForPosition(_ position: AVCaptureDevicePosition) {
             for device in AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) {
-                
                 if let device = device as? AVCaptureDevice,
                     device.position == position {
-                    
-                    videoInput = try AVCaptureDeviceInput(device: device)
-                    session.addInput(videoInput)
+                    if let videoInput = try? AVCaptureDeviceInput(device: device),
+                        session.canAddInput(videoInput) {
+                        session.addInput(videoInput)
+                    }
                 }
             }
-            
-            session.commitConfiguration()
-            
-        } catch {
-            
         }
-        
+
+        guard let session = session else { return }
+        session.stopRunning()
+        session.beginConfiguration()
+        removeCurrentInput()
+        let position = currentInputLocation()
+        addVideoInputForPosition(position)
+        session.commitConfiguration()
         session.startRunning()
     }
     
