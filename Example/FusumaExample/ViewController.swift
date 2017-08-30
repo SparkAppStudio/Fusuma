@@ -93,19 +93,12 @@ class ViewController: UIViewController, FusumaDelegate {
     }
     
     func fusumaDismissedWithImage(_ image: UIImage, source: FusumaMode) {
-        
         switch source {
-        
         case .camera:
-        
             print("Called just after dismissed FusumaViewController using Camera")
-        
         case .library:
-        
             print("Called just after dismissed FusumaViewController using Camera Roll")
-        
-        default:
-        
+        case .video:
             print("Called just after dismissed FusumaViewController")
         }
     }
