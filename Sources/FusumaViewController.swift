@@ -532,19 +532,12 @@ private extension FusumaViewController {
     func changeMode(_ mode: FusumaMode, isForced: Bool = false) {
 
         if !isForced && self.mode == mode { return }
-        
         switch self.mode {
-            
         case .camera:
-            
             self.cameraView.stopCamera()
-        
         case .video:
-        
             self.videoView.stopCamera()
-        
         default:
-        
             break
         }
         
@@ -554,22 +547,16 @@ private extension FusumaViewController {
         updateDoneButtonVisibility()
         
         switch mode {
-            
         case .library:
-            
             titleLabel.text = NSLocalizedString(fusumaCameraRollTitle, comment: fusumaCameraRollTitle)
             highlightButton(libraryButton)
             self.view.bringSubview(toFront: photoLibraryViewerContainer)
-        
         case .camera:
-
             titleLabel.text = NSLocalizedString(fusumaCameraTitle, comment: fusumaCameraTitle)
             highlightButton(cameraButton)
             self.view.bringSubview(toFront: cameraShotContainer)
             cameraView.startCamera()
-            
         case .video:
-            
             titleLabel.text = NSLocalizedString(fusumaVideoTitle, comment: fusumaVideoTitle)
             highlightButton(videoButton)
             self.view.bringSubview(toFront: videoShotContainer)
