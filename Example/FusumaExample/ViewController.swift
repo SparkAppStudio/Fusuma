@@ -7,10 +7,71 @@
 //
 
 import UIKit
+import AVFoundation
+
+class PreviewView: UIView {
+
+    lazy var playerItem: AVPlayerItem = AVPlayerItem(url: self.videoURL!)
+    lazy var player: AVQueuePlayer = AVQueuePlayer(items: [self.playerItem])
+    lazy var looper: AVPlayerLooper = AVPlayerLooper(player: self.player, templateItem: self.playerItem)
+    lazy var playerLayer: AVPlayerLayer =  AVPlayerLayer(player: self.player)
+
+    var image: UIImage? {
+        didSet {
+            if image != nil {
+                displayImage()
+            } else {
+                hideImageDisplay()
+            }
+        }
+    }
+
+    var videoURL: URL? {
+        didSet {
+            if videoURL != nil {
+                showVideoPreview()
+            } else {
+                hideVideoDisplay()
+            }
+        }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        sharedInit()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        sharedInit()
+    }
+
+    func sharedInit() {
+        backgroundColor = .blue
+    }
+
+    func displayImage() {
+        layer.contents = image?.cgImage
+    }
+
+    func hideImageDisplay() {
+        layer.contents = nil
+    }
+
+    func showVideoPreview() {
+        playerLayer.frame = self.bounds
+        layer.addSublayer(playerLayer)
+        player.play()
+    }
+
+    func hideVideoDisplay() {
+
+    }
+}
 
 class ViewController: UIViewController {
     
-    @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var previewView: PreviewView!
     
     @IBOutlet weak var showButton: UIButton!
     
@@ -49,7 +110,7 @@ extension ViewController: FusumaDelegate {
         case .video:
             print("Video captured")
         }
-        imageView.image = image
+        previewView.image = image
     }
 
     func fusumaMultipleImageSelected(_ images: [UIImage], source: FusumaMode) {
@@ -57,7 +118,7 @@ extension ViewController: FusumaDelegate {
         var count: Double = 0
         for image in images {
             DispatchQueue.main.asyncAfter(deadline: .now() + (3.0 * count)) {
-                self.imageView.image = image
+                self.previewView.image = image
                 print("w: \(image.size.width) - h: \(image.size.height)")
             }
             count += 1
@@ -67,6 +128,7 @@ extension ViewController: FusumaDelegate {
     func fusumaVideoCompleted(withFileURL fileURL: URL) {
         print("video completed and output to file: \(fileURL)")
         self.fileUrlLabel.text = "file output to: \(fileURL.absoluteString)"
+        previewView.videoURL = fileURL
     }
 
     func fusumaCameraRollUnauthorized() {
@@ -89,7 +151,7 @@ extension ViewController: FusumaDelegate {
         presented.present(alert, animated: true, completion: nil)
     }
 
-    // optional
+    // Optional
     func fusumaImageSelected(_ image: UIImage, source: FusumaMode, metaData: ImageMetadata) {
         print("Image mediatype: \(metaData.mediaType)")
         print("Source image size: \(metaData.pixelWidth)x\(metaData.pixelHeight)")
