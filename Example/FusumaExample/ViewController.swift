@@ -19,6 +19,7 @@ class PreviewView: UIView {
     var image: UIImage? {
         didSet {
             if image != nil {
+                videoURL = nil
                 displayImage()
             } else {
                 hideImageDisplay()
@@ -29,6 +30,7 @@ class PreviewView: UIView {
     var videoURL: URL? {
         didSet {
             if videoURL != nil {
+                image = nil
                 showVideoPreview()
             } else {
                 hideVideoDisplay()
@@ -65,7 +67,9 @@ class PreviewView: UIView {
     }
 
     func hideVideoDisplay() {
-
+        if let sublayers = layer.sublayers, sublayers.count > 0 {
+            playerLayer.removeFromSuperlayer()
+        }
     }
 }
 
