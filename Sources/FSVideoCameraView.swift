@@ -6,18 +6,28 @@
 //  Copyright © 2016 CocoaPods. All rights reserved.
 //
 
-class Recorder: NSObject {
+class Recorder {
 
-    var session: AVCaptureSession?
+    struct Config {
+        let FPS: Int
+        let maxDuration: Double
+    }
 
-    func initialize() {
-        if session != nil { return }
-        session = AVCaptureSession()
+    var config: Recorder.Config = Config(FPS: 30, maxDuration: 8.0)
+
+    let session: AVCaptureSession
+
+    var device: AVCaptureDevice?
+
+    var videoInput: AVCaptureDeviceInput!
+    var videoOutput: AVCaptureMovieFileOutput!
+
+    init() {
+      session = AVCaptureSession()
     }
 
     func addInput(_ input: AVCaptureDeviceInput?) {
         guard let input = input else { return }
-        guard let session = session else { return }
         if session.canAddInput(input) {
             session.addInput(input)
         }
@@ -25,14 +35,27 @@ class Recorder: NSObject {
 
     func addOutput(_ output: AVCaptureMovieFileOutput?) {
         guard let output = output else { return }
-        guard let session = session else { return }
         if session.canAddOutput(output) {
             session.addOutput(output)
         }
     }
 
-}
+    func addBackCamera() throws {
+        videoInput = try AVCaptureDeviceInput(device: device)
+        addInput(videoInput)
+    }
 
+    func addFileOutput() {
+        videoOutput = AVCaptureMovieFileOutput()
+
+        let maxDuration = CMTimeMakeWithSeconds(config.maxDuration, Int32(config.FPS))
+        videoOutput?.maxRecordedDuration = maxDuration
+        videoOutput?.minFreeDiskSpaceLimit = 1024 * 1024 //SET MIN FREE SPACE IN BYTES FOR RECORDING TO CONTINUE ON A VOLUME
+
+        addOutput(videoOutput)
+    }
+
+}
 
 import UIKit
 import AVFoundation
@@ -50,14 +73,22 @@ final class FSVideoCameraView: UIView {
     
     weak var delegate: FSVideoCameraViewDelegate? = nil
     
-    var recorder = Recorder()
+    let recorder = Recorder()
+
     @available(*, deprecated)
     var session: AVCaptureSession! {
         return recorder.session
     }
+
+    @available(*, deprecated)
     var device: AVCaptureDevice?
+
+    @available(*, deprecated)
     var videoInput: AVCaptureDeviceInput?
+
+    @available(*, deprecated)
     var videoOutput: AVCaptureMovieFileOutput?
+
     var focusView: UIView?
     
     var flashOffImage: UIImage?
@@ -97,22 +128,11 @@ final class FSVideoCameraView: UIView {
         self.isHidden = false
         
         // AVCapture
-        recorder.initialize()
-        self.device = getBackCamera()
+        recorder.device = getBackCamera()
 
         do {
-            videoInput = try AVCaptureDeviceInput(device: device)
-            recorder.addInput(videoInput)
-            
-            videoOutput = AVCaptureMovieFileOutput()
-            let timeScale: Int32 = 30 //FPS
-            
-            let maxDuration = CMTimeMakeWithSeconds(totalSeconds, timeScale)
-            
-            videoOutput?.maxRecordedDuration = maxDuration
-            videoOutput?.minFreeDiskSpaceLimit = 1024 * 1024 //SET MIN FREE SPACE IN BYTES FOR RECORDING TO CONTINUE ON A VOLUME
-
-            recorder.addOutput(videoOutput)
+            try recorder.addBackCamera()
+            recorder.addFileOutput()
 
             let videoLayer = AVCaptureVideoPreviewLayer(session: recorder.session)
             videoLayer?.frame = self.previewViewContainer.bounds
@@ -236,26 +256,18 @@ final class FSVideoCameraView: UIView {
             let mode = device.flashMode
             
             switch mode {
-                
             case .off:
-                
                 device.flashMode = AVCaptureFlashMode.on
                 flashButton.setImage(flashOnImage, for: UIControlState())
-                
             case .on:
-                
                 device.flashMode = AVCaptureFlashMode.off
                 flashButton.setImage(flashOffImage, for: UIControlState())
-                
             default:
-                
                 break
             }
             
             device.unlockForConfiguration()
-            
         } catch _ {
-            
             flashButton.setImage(flashOffImage, for: UIControlState())
             return
         }
