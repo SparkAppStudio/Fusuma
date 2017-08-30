@@ -6,6 +6,34 @@
 //  Copyright © 2016 CocoaPods. All rights reserved.
 //
 
+class Recorder: NSObject {
+
+    var session: AVCaptureSession?
+
+    func initialize() {
+        if session != nil { return }
+        session = AVCaptureSession()
+    }
+
+    func addInput(_ input: AVCaptureDeviceInput?) {
+        guard let input = input else { return }
+        guard let session = session else { return }
+        if session.canAddInput(input) {
+            session.addInput(input)
+        }
+    }
+
+    func addOutput(_ output: AVCaptureMovieFileOutput?) {
+        guard let output = output else { return }
+        guard let session = session else { return }
+        if session.canAddOutput(output) {
+            session.addOutput(output)
+        }
+    }
+
+}
+
+
 import UIKit
 import AVFoundation
 
@@ -22,7 +50,11 @@ final class FSVideoCameraView: UIView {
     
     weak var delegate: FSVideoCameraViewDelegate? = nil
     
-    var session: AVCaptureSession?
+    var recorder = Recorder()
+    @available(*, deprecated)
+    var session: AVCaptureSession! {
+        return recorder.session
+    }
     var device: AVCaptureDevice?
     var videoInput: AVCaptureDeviceInput?
     var videoOutput: AVCaptureMovieFileOutput?
@@ -40,7 +72,6 @@ final class FSVideoCameraView: UIView {
     fileprivate var isRecording = false
     
     static func instance() -> FSVideoCameraView {
-        
         return UINib(nibName: "FSVideoCameraView", bundle: Bundle(for: self.classForCoder())).instantiate(withOwner: self, options: nil)[0] as! FSVideoCameraView
     }
 
@@ -59,34 +90,19 @@ final class FSVideoCameraView: UIView {
         circleProgress.strokeEnd = 1.0 // initially fill the circle
     }
 
-
     func initialize() {
-        
-        if session != nil { return }
-        
+
         self.backgroundColor = fusumaBackgroundColor
         
         self.isHidden = false
         
         // AVCapture
-        session = AVCaptureSession()
-        
-        guard let session = session else { return }
-        
-        for device in AVCaptureDevice.devices() {
-            
-            if let device = device as? AVCaptureDevice,
-                device.position == AVCaptureDevicePosition.back {
-                
-                self.device = device
-            }
-        }
-        
+        recorder.initialize()
+        self.device = getBackCamera()
+
         do {
-            
             videoInput = try AVCaptureDeviceInput(device: device)
-            
-            session.addInput(videoInput)
+            recorder.addInput(videoInput)
             
             videoOutput = AVCaptureMovieFileOutput()
             let timeScale: Int32 = 30 //FPS
@@ -95,12 +111,9 @@ final class FSVideoCameraView: UIView {
             
             videoOutput?.maxRecordedDuration = maxDuration
             videoOutput?.minFreeDiskSpaceLimit = 1024 * 1024 //SET MIN FREE SPACE IN BYTES FOR RECORDING TO CONTINUE ON A VOLUME
-            
-            if session.canAddOutput(videoOutput) {
-                
-                session.addOutput(videoOutput)
-            }
-            
+
+            recorder.addOutput(videoOutput)
+
             let videoLayer = AVCaptureVideoPreviewLayer(session: session)
             videoLayer?.frame = self.previewViewContainer.bounds
             videoLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
@@ -143,7 +156,6 @@ final class FSVideoCameraView: UIView {
     }
     
     deinit {
-        
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -251,6 +263,17 @@ final class FSVideoCameraView: UIView {
             return
         }
     }
+
+    func getBackCamera() -> AVCaptureDevice? {
+        for device in AVCaptureDevice.devices() {
+            if let device = device as? AVCaptureDevice,
+                device.position == AVCaptureDevicePosition.back {
+                return device
+            }
+        }
+        return nil
+    }
+
 }
 
 extension FSVideoCameraView: AVCaptureFileOutputRecordingDelegate {
@@ -369,18 +392,12 @@ fileprivate extension FSVideoCameraView {
     func flashConfiguration() {
         
         do {
-            
             guard let device = device else { return }
-            
             try device.lockForConfiguration()
-            
             device.flashMode = AVCaptureFlashMode.off
             flashButton.setImage(flashOffImage, for: UIControlState())
-            
             device.unlockForConfiguration()
-            
         } catch _ {
-            
             return
         }
     }
