@@ -15,18 +15,13 @@ final class FSImageCropView: UIScrollView, UIScrollViewDelegate {
     var imageSize: CGSize?
     
     var image: UIImage! = nil {
-        
         didSet {
-            
             if image != nil {
-                
                 if !imageView.isDescendant(of: self) {
                     self.imageView.alpha = 1.0
                     self.addSubview(imageView)
                 }
-                
             } else {
-                
                 imageView.image = nil
                 return
             }

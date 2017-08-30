@@ -256,12 +256,10 @@ final class FSVideoCameraView: UIView {
 extension FSVideoCameraView: AVCaptureFileOutputRecordingDelegate {
     
     func capture(_ captureOutput: AVCaptureFileOutput!, didStartRecordingToOutputFileAt fileURL: URL!, fromConnections connections: [Any]!) {
-        
         print("started recording to: \(fileURL)")
     }
     
     func capture(_ captureOutput: AVCaptureFileOutput!, didFinishRecordingToOutputFileAt outputFileURL: URL!, fromConnections connections: [Any]!, error: Error!) {
-        
         print("finished recording to: \(outputFileURL)")
         self.delegate?.videoFinished(withFileURL: outputFileURL)
     }
@@ -270,14 +268,10 @@ extension FSVideoCameraView: AVCaptureFileOutputRecordingDelegate {
 fileprivate extension FSVideoCameraView {
     
     func toggleRecording() {
-        
         guard let videoOutput = videoOutput else { return }
-        
         self.isRecording = !self.isRecording
 
-        
         let shotImage = self.isRecording ? videoStopImage : videoStartImage
-        
         self.shotButton.setImage(shotImage, for: UIControlState())
         
         if self.isRecording {
@@ -293,9 +287,7 @@ fileprivate extension FSVideoCameraView {
             if fileManager.fileExists(atPath: outputPath) {
                 
                 do {
-                    
                     try fileManager.removeItem(atPath: outputPath)
-                    
                 } catch {
                     
                     print("error removing item at path: \(outputPath)")
@@ -324,21 +316,16 @@ fileprivate extension FSVideoCameraView {
         let newPoint = CGPoint(x: point.y / viewsize.height, y: 1.0-point.x / viewsize.width)
         
         guard let device = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo) else {
-            
             return
         }
         
         do {
-            
             try device.lockForConfiguration()
-            
         } catch _ {
-            
             return
         }
         
         if device.isFocusModeSupported(AVCaptureFocusMode.autoFocus) == true {
-            
             device.focusMode = AVCaptureFocusMode.autoFocus
             device.focusPointOfInterest = newPoint
         }
