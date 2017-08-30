@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, FusumaDelegate {
+class ViewController: UIViewController {
     
     @IBOutlet weak var imageView: UIImageView!
     
@@ -22,17 +22,7 @@ class ViewController: UIViewController, FusumaDelegate {
         showButton.layer.cornerRadius = 2.0
         self.fileUrlLabel.text = ""
     }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        
-        
-    }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
     @IBAction func showButtonPressed(_ sender: AnyObject) {
         
         // Show Fusuma
@@ -46,10 +36,11 @@ class ViewController: UIViewController, FusumaDelegate {
 
         self.present(fusuma, animated: true, completion: nil)
     }
-    
-    // MARK: FusumaDelegate Protocol
+}
+
+extension ViewController: FusumaDelegate {
+
     func fusumaImageSelected(_ image: UIImage, source: FusumaMode) {
-        
         switch source {
         case .camera:
             print("Image captured from Camera")
@@ -58,10 +49,9 @@ class ViewController: UIViewController, FusumaDelegate {
         case .video:
             print("Video captured")
         }
-        
         imageView.image = image
     }
-    
+
     func fusumaMultipleImageSelected(_ images: [UIImage], source: FusumaMode) {
         print("Number of selection images: \(images.count)")
         var count: Double = 0
@@ -74,8 +64,36 @@ class ViewController: UIViewController, FusumaDelegate {
         }
     }
 
+    func fusumaVideoCompleted(withFileURL fileURL: URL) {
+        print("video completed and output to file: \(fileURL)")
+        self.fileUrlLabel.text = "file output to: \(fileURL.absoluteString)"
+    }
+
+    func fusumaCameraRollUnauthorized() {
+        print("Camera roll unauthorized")
+        let alert = UIAlertController(title: "Access Requested",
+                                      message: "Saving image needs to access your photo album",
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Settings", style: .default) { (action) -> Void in
+            if let url = URL(string:UIApplicationOpenSettingsURLString) {
+                UIApplication.shared.openURL(url)
+            }
+        })
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { (action) -> Void in
+        })
+
+        guard let vc = UIApplication.shared.delegate?.window??.rootViewController,
+            let presented = vc.presentedViewController else {
+
+                return
+        }
+
+        presented.present(alert, animated: true, completion: nil)
+    }
+
+    // optional
     func fusumaImageSelected(_ image: UIImage, source: FusumaMode, metaData: ImageMetadata) {
-        
         print("Image mediatype: \(metaData.mediaType)")
         print("Source image size: \(metaData.pixelWidth)x\(metaData.pixelHeight)")
         print("Creation date: \(String(describing: metaData.creationDate))")
@@ -86,12 +104,6 @@ class ViewController: UIViewController, FusumaDelegate {
         print("Location: \(String(describing: metaData.location))")
     }
 
-    func fusumaVideoCompleted(withFileURL fileURL: URL) {
-        
-        print("video completed and output to file: \(fileURL)")
-        self.fileUrlLabel.text = "file output to: \(fileURL.absoluteString)"
-    }
-    
     func fusumaDismissedWithImage(_ image: UIImage, source: FusumaMode) {
         switch source {
         case .camera:
@@ -102,45 +114,11 @@ class ViewController: UIViewController, FusumaDelegate {
             print("Called just after dismissed FusumaViewController")
         }
     }
-    
-    func fusumaCameraRollUnauthorized() {
-        
-        print("Camera roll unauthorized")
-        
-        let alert = UIAlertController(title: "Access Requested",
-                                      message: "Saving image needs to access your photo album",
-                                      preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "Settings", style: .default) { (action) -> Void in
-            
-            if let url = URL(string:UIApplicationOpenSettingsURLString) {
-                
-                UIApplication.shared.openURL(url)
-            }
-        })
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { (action) -> Void in
-            
-        })
-
-        guard let vc = UIApplication.shared.delegate?.window??.rootViewController,
-            let presented = vc.presentedViewController else {
-            
-            return
-        }
-        
-        presented.present(alert, animated: true, completion: nil)
-    }
-    
     func fusumaClosed() {
-        
         print("Called when the FusumaViewController disappeared")
     }
-    
     func fusumaWillClosed() {
-        
         print("Called when the close button is pressed")
     }
 
 }
-
