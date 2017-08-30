@@ -51,33 +51,22 @@ class ViewController: UIViewController, FusumaDelegate {
     func fusumaImageSelected(_ image: UIImage, source: FusumaMode) {
         
         switch source {
-            
         case .camera:
-            
             print("Image captured from Camera")
-        
         case .library:
-            
             print("Image selected from Camera Roll")
-        
-        default:
-        
-            print("Image selected")
+        case .video:
+            print("Video captured")
         }
         
         imageView.image = image
     }
     
     func fusumaMultipleImageSelected(_ images: [UIImage], source: FusumaMode) {
-        
         print("Number of selection images: \(images.count)")
-
         var count: Double = 0
-        
         for image in images {
-        
             DispatchQueue.main.asyncAfter(deadline: .now() + (3.0 * count)) {
-            
                 self.imageView.image = image
                 print("w: \(image.size.width) - h: \(image.size.height)")
             }
