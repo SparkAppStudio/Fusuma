@@ -34,7 +34,7 @@ class ViewController: UIViewController {
         fusuma.availableModes = [.library, .camera, .video]
         fusumaSavesImage = true
 
-        self.present(fusuma, animated: true, completion: nil)
+        present(fusuma, animated: true, completion: nil)
     }
 }
 
@@ -74,21 +74,18 @@ extension ViewController: FusumaDelegate {
         let alert = UIAlertController(title: "Access Requested",
                                       message: "Saving image needs to access your photo album",
                                       preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Settings", style: .default) { (action) -> Void in
-            if let url = URL(string:UIApplicationOpenSettingsURLString) {
-                UIApplication.shared.openURL(url)
-            }
-        })
+        let settingsAction = UIAlertAction(title: "Settings", style: .default) { _ in
+            _ = URL(string:UIApplicationOpenSettingsURLString).map(UIApplication.shared.openURL)
+        }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
 
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { (action) -> Void in
-        })
+        alert.addAction(settingsAction)
+        alert.addAction(cancelAction)
 
         guard let vc = UIApplication.shared.delegate?.window??.rootViewController,
             let presented = vc.presentedViewController else {
-
                 return
         }
-
         presented.present(alert, animated: true, completion: nil)
     }
 
@@ -114,9 +111,11 @@ extension ViewController: FusumaDelegate {
             print("Called just after dismissed FusumaViewController")
         }
     }
+
     func fusumaClosed() {
         print("Called when the FusumaViewController disappeared")
     }
+
     func fusumaWillClosed() {
         print("Called when the close button is pressed")
     }
