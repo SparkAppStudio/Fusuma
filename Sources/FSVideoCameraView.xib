@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina5_5" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -50,7 +49,7 @@
                                 <action selector="shotButtonPressed:" destination="iN0-l3-epB" eventType="touchUpInside" id="sNT-eM-y2G"/>
                             </connections>
                         </button>
-                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yHq-QZ-jPz">
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yHq-QZ-jPz" customClass="FlashButton" customModule="Fusuma" customModuleProvider="target">
                             <rect key="frame" x="345" y="55" width="40" height="40"/>
                             <constraints>
                                 <constraint firstAttribute="width" constant="40" id="C6F-2l-AWm"/>
@@ -59,7 +58,7 @@
                             <inset key="contentEdgeInsets" minX="2" minY="2" maxX="2" maxY="2"/>
                             <state key="normal" image="ic_flash_off"/>
                             <connections>
-                                <action selector="flashButtonPressed:" destination="iN0-l3-epB" eventType="touchUpInside" id="nou-7D-EDR"/>
+                                <action selector="flashButtonPressed:" destination="iN0-l3-epB" eventType="touchUpInside" id="jRf-n1-HVf"/>
                             </connections>
                         </button>
                     </subviews>
@@ -86,7 +85,7 @@
             </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <connections>
-                <outlet property="flashButton" destination="yHq-QZ-jPz" id="umV-Ve-W2b"/>
+                <outlet property="flashButton" destination="yHq-QZ-jPz" id="ErB-da-ce8"/>
                 <outlet property="flipButton" destination="oPV-fC-75T" id="J96-fz-NnG"/>
                 <outlet property="previewViewContainer" destination="0hK-pW-0DW" id="8bh-3S-jSb"/>
                 <outlet property="shotButton" destination="cpy-ro-bt6" id="SbF-vE-c2o"/>

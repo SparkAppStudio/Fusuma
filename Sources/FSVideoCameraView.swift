@@ -55,6 +55,34 @@ class Recorder {
         addOutput(videoOutput)
     }
 
+    func setFlashOff() throws {
+        guard let device = device else { return }
+        try device.lockForConfiguration()
+        device.flashMode = AVCaptureFlashMode.off
+        device.unlockForConfiguration()
+    }
+
+}
+
+class FlashButton: UIButton {
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        sharedInit()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        sharedInit()
+    }
+
+    func sharedInit() {
+        let bundle = Bundle(for: FlashButton.self)
+        let flashOffImage = UIImage(named: "ic_flash_off", in: bundle, compatibleWith: nil)!
+        setImage(flashOffImage.withRenderingMode(.alwaysTemplate), for: .normal)
+        let flashOnImage = UIImage(named: "ic_flash_on", in: bundle, compatibleWith: nil)!
+        setImage(flashOnImage.withRenderingMode(.alwaysTemplate), for: .selected)
+    }
 }
 
 import UIKit
@@ -68,7 +96,7 @@ final class FSVideoCameraView: UIView {
 
     @IBOutlet weak var previewViewContainer: UIView!
     @IBOutlet weak var shotButton: UIButton!
-    @IBOutlet weak var flashButton: UIButton!
+    @IBOutlet weak var flashButton: FlashButton!
     @IBOutlet weak var flipButton: UIButton!
     
     weak var delegate: FSVideoCameraViewDelegate? = nil
@@ -81,19 +109,13 @@ final class FSVideoCameraView: UIView {
     }
 
     @available(*, deprecated)
-    var device: AVCaptureDevice?
-
-    @available(*, deprecated)
     var videoInput: AVCaptureDeviceInput?
 
     @available(*, deprecated)
     var videoOutput: AVCaptureMovieFileOutput?
 
     var focusView: UIView?
-    
-    var flashOffImage: UIImage?
-    var flashOnImage: UIImage?
-    var videoStartImage: UIImage?
+
     var videoStopImage: UIImage?
 
     let totalSeconds = 8.0 //Total Seconds of capture time
@@ -154,21 +176,19 @@ final class FSVideoCameraView: UIView {
         
         let bundle = Bundle(for: self.classForCoder)
         
-        flashOnImage = fusumaFlashOnImage != nil ? fusumaFlashOnImage : UIImage(named: "ic_flash_on", in: bundle, compatibleWith: nil)
-        flashOffImage = fusumaFlashOffImage != nil ? fusumaFlashOffImage : UIImage(named: "ic_flash_off", in: bundle, compatibleWith: nil)
         let flipImage = fusumaFlipImage != nil ? fusumaFlipImage : UIImage(named: "ic_loop", in: bundle, compatibleWith: nil)
-        videoStartImage = fusumaVideoStartImage != nil ? fusumaVideoStartImage : UIImage(named: "ic_shutter", in: bundle, compatibleWith: nil)
         videoStopImage = fusumaVideoStopImage != nil ? fusumaVideoStopImage : UIImage(named: "ic_shutter_recording", in: bundle, compatibleWith: nil)
         
         flashButton.tintColor = fusumaBaseTintColor
         flipButton.tintColor  = fusumaBaseTintColor
         shotButton.tintColor  = fusumaBaseTintColor
-        
-        flashButton.setImage(flashOffImage?.withRenderingMode(.alwaysTemplate), for: .normal)
+
+        flashButton.isSelected = false
         flipButton.setImage(flipImage?.withRenderingMode(.alwaysTemplate), for: .normal)
-        shotButton.setImage(videoStartImage?.withRenderingMode(.alwaysTemplate), for: .normal)
+        let videoStartImage = UIImage(named: "ic_shutter", in: bundle, compatibleWith: nil)!
+        shotButton.setImage(videoStartImage.withRenderingMode(.alwaysTemplate), for: .normal)
         
-        flashConfiguration()
+        try? recorder.setFlashOff()
         
         self.startCamera()
     }
@@ -247,26 +267,23 @@ final class FSVideoCameraView: UIView {
         
         do {
             
-            guard let device = device else { return }
+            guard let device = recorder.device else { return }
             
             try device.lockForConfiguration()
-            
             let mode = device.flashMode
-            
             switch mode {
             case .off:
                 device.flashMode = AVCaptureFlashMode.on
-                flashButton.setImage(flashOnImage, for: UIControlState())
+                flashButton.isSelected = true
             case .on:
                 device.flashMode = AVCaptureFlashMode.off
-                flashButton.setImage(flashOffImage, for: UIControlState())
+                flashButton.isSelected = false
             default:
                 break
             }
-            
             device.unlockForConfiguration()
         } catch _ {
-            flashButton.setImage(flashOffImage, for: UIControlState())
+            flashButton.isSelected = false
             return
         }
     }
@@ -301,6 +318,8 @@ fileprivate extension FSVideoCameraView {
         guard let videoOutput = videoOutput else { return }
         self.isRecording = !self.isRecording
 
+        let bundle = Bundle(for: FSVideoCameraView.self)
+        let videoStartImage = UIImage(named: "ic_shutter", in: bundle, compatibleWith: nil)
         let shotImage = self.isRecording ? videoStopImage : videoStartImage
         self.shotButton.setImage(shotImage, for: UIControlState())
         
@@ -394,18 +413,5 @@ fileprivate extension FSVideoCameraView {
             focusView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
             focusView.removeFromSuperview()
         })
-    }
-    
-    func flashConfiguration() {
-        
-        do {
-            guard let device = device else { return }
-            try device.lockForConfiguration()
-            device.flashMode = AVCaptureFlashMode.off
-            flashButton.setImage(flashOffImage, for: UIControlState())
-            device.unlockForConfiguration()
-        } catch _ {
-            return
-        }
     }
 }
