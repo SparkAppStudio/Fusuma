@@ -8,6 +8,7 @@
 
 import UIKit
 import AVFoundation
+import Fusuma
 
 class PreviewView: UIView {
 
@@ -141,7 +142,9 @@ extension ViewController: FusumaDelegate {
                                       message: "Saving image needs to access your photo album",
                                       preferredStyle: .alert)
         let settingsAction = UIAlertAction(title: "Settings", style: .default) { _ in
-            _ = URL(string:UIApplicationOpenSettingsURLString).map(UIApplication.shared.openURL)
+            if let settings = URL(string:UIApplicationOpenSettingsURLString) {
+                UIApplication.shared.open(settings, options: [:], completionHandler: nil)
+            }
         }
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
 
